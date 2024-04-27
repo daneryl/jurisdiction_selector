@@ -5,18 +5,32 @@ import "./App.css";
 import { fetchJurisdictions, fetchSubJurisdictions } from "./fake_api.js";
 
 type Jurisdiction = {
-  id: number,
-  name: string
-}
+  id: number;
+  name: string;
+};
 
 function App() {
-  const [jurisdictions, setJurisdictions] = useState<{[k: string]: Jurisdiction[]}>({});
+  const [jurisdictions, setJurisdictions] = useState<{
+    [k: string]: Jurisdiction[];
+  }>({});
 
   useEffect(() => {
     fetchJurisdictions().then((jurisdictions: Jurisdiction[]) => {
-      setJurisdictions({0: jurisdictions});
+      setJurisdictions({ 0: jurisdictions });
     });
   }, []);
+
+  const loadSubJurisdictions = (jurisdiction: Jurisdiction) => {
+    setJurisdictions({ ...jurisdictions, ...{ [jurisdiction.id]: [] } });
+    fetchSubJurisdictions(jurisdiction.id).then(
+      (subjurisdictions: Jurisdiction[]) => {
+        setJurisdictions({
+          ...jurisdictions,
+          ...{ 1: subjurisdictions },
+        });
+      }
+    );
+  };
 
   if (!Object.keys(jurisdictions).length) {
     return (
@@ -32,15 +46,7 @@ function App() {
         return (
           <div
             onClick={() => {
-              setJurisdictions({ ...jurisdictions, ...{ 1: [] } });
-              fetchSubJurisdictions(jurisdiction.id).then(
-                (subjurisdictions: Jurisdiction[]) => {
-                  setJurisdictions({
-                    ...jurisdictions,
-                    ...{ 1: subjurisdictions },
-                  });
-                }
-              );
+              loadSubJurisdictions(jurisdiction);
             }}
           >
             {jurisdiction.name}
@@ -51,8 +57,25 @@ function App() {
 
             {jurisdictions[jurisdiction.id] &&
               jurisdictions[jurisdiction.id].length &&
-              jurisdictions[jurisdiction.id].map((subjurisdiction) => {
-                return <div>{subjurisdiction.name}</div>;
+              jurisdictions[jurisdiction.id].map((sub) => {
+                return <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    loadSubJurisdictions(sub);
+                  }}
+                >
+                  {sub.name}
+                  {jurisdictions[sub.id] &&
+                    !jurisdictions[sub.id].length && (
+                      <div>Loading {sub.name} ...</div>
+                    )}
+
+                  {jurisdictions[sub.id] &&
+                    jurisdictions[sub.id].length &&
+                    jurisdictions[sub.id].map((sub2) => {
+                      return <div>{sub2.name}</div>;
+                    })}
+                </div>;
               })}
           </div>
         );

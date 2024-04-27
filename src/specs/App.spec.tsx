@@ -36,4 +36,27 @@ describe("App", () => {
     );
     expect(screen.queryByText("Loading Spain ...")).toBeNull();
   });
+
+  it("should load subjurisdictions when selecting one subjurisdiction", async () => {
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText("Spain")).toBeVisible();
+    });
+    fireEvent.click(screen.getByText("Spain"));
+    await waitFor(
+      () => {
+        expect(screen.getByText("Aragón")).toBeVisible();
+      },
+      { timeout: 2000 }
+    );
+    fireEvent.click(screen.getByText("Aragón"));
+    expect(screen.queryByText("Loading Aragón ...")).toBeVisible();
+    await waitFor(
+      () => {
+        expect(screen.getByText("Huesca")).toBeVisible();
+      },
+      { timeout: 2000 }
+    );
+    expect(screen.queryByText("Loading Aragón ...")).toBeNull();
+  });
 });
