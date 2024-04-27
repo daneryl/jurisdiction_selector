@@ -3,16 +3,15 @@ import "./App.css";
 import { fetchJurisdictions, fetchSubJurisdictions } from "./fake_api";
 
 function App() {
-  const [jurisdictions, setJurisdictions] = useState([]);
-  const [subJurisdictions, setSubJurisdictions] = useState({});
+  const [jurisdictions, setJurisdictions] = useState({});
 
   useEffect(() => {
-    fetchJurisdictions().then((response) => {
-      setJurisdictions(response);
+    fetchJurisdictions().then((jurisdictions) => {
+      setJurisdictions({0: jurisdictions});
     });
   }, []);
 
-  if (!jurisdictions.length) {
+  if (!Object.keys(jurisdictions).length) {
     return (
       <>
         <div>Loading ...</div>
@@ -22,15 +21,15 @@ function App() {
 
   return (
     <>
-      {jurisdictions.map((jurisdiction) => {
+      {jurisdictions[0].map((jurisdiction) => {
         return (
           <div
             onClick={() => {
-              setSubJurisdictions({ ...subJurisdictions, ...{ 1: [] } });
+              setJurisdictions({ ...jurisdictions, ...{ 1: [] } });
               fetchSubJurisdictions(jurisdiction.id).then(
                 (subjurisdictions) => {
-                  setSubJurisdictions({
-                    ...subJurisdictions,
+                  setJurisdictions({
+                    ...jurisdictions,
                     ...{ 1: subjurisdictions },
                   });
                 }
@@ -38,14 +37,14 @@ function App() {
             }}
           >
             {jurisdiction.name}
-            {subJurisdictions[jurisdiction.id] &&
-              !subJurisdictions[jurisdiction.id].length && (
+            {jurisdictions[jurisdiction.id] &&
+              !jurisdictions[jurisdiction.id].length && (
                 <div>Loading {jurisdiction.name} ...</div>
               )}
 
-            {subJurisdictions[jurisdiction.id] &&
-              subJurisdictions[jurisdiction.id].length &&
-              subJurisdictions[jurisdiction.id].map((subjurisdiction) => {
+            {jurisdictions[jurisdiction.id] &&
+              jurisdictions[jurisdiction.id].length &&
+              jurisdictions[jurisdiction.id].map((subjurisdiction) => {
                 return <div>{subjurisdiction.name}</div>;
               })}
           </div>
