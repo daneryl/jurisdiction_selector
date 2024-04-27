@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import { fetchJurisdictions, fetchSubJurisdictions } from "./fake_api";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { fetchJurisdictions, fetchSubJurisdictions } from "./fake_api.js";
+
+type Jurisdiction = {
+  id: number,
+  name: string
+}
 
 function App() {
-  const [jurisdictions, setJurisdictions] = useState({});
+  const [jurisdictions, setJurisdictions] = useState<{[k: string]: Jurisdiction[]}>({});
 
   useEffect(() => {
-    fetchJurisdictions().then((jurisdictions) => {
+    fetchJurisdictions().then((jurisdictions: Jurisdiction[]) => {
       setJurisdictions({0: jurisdictions});
     });
   }, []);
@@ -27,7 +34,7 @@ function App() {
             onClick={() => {
               setJurisdictions({ ...jurisdictions, ...{ 1: [] } });
               fetchSubJurisdictions(jurisdiction.id).then(
-                (subjurisdictions) => {
+                (subjurisdictions: Jurisdiction[]) => {
                   setJurisdictions({
                     ...jurisdictions,
                     ...{ 1: subjurisdictions },
