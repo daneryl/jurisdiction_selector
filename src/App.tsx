@@ -26,7 +26,7 @@ function App() {
       (subjurisdictions: Jurisdiction[]) => {
         setJurisdictions({
           ...jurisdictions,
-          ...{ 1: subjurisdictions },
+          ...{ [jurisdiction.id]: subjurisdictions },
         });
       }
     );

@@ -53,6 +53,7 @@ describe("App", () => {
     expect(screen.queryByText("Loading Aragón ...")).toBeVisible();
     await waitFor(
       () => {
+        expect(screen.getByText("Aragón")).toBeVisible();
         expect(screen.getByText("Huesca")).toBeVisible();
       },
       { timeout: 2000 }
