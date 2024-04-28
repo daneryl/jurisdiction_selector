@@ -13,13 +13,17 @@ type JurisdictionsAPI = {
 
 function App({
   useJurisdictionsAPI,
+  onChange,
 }: {
   useJurisdictionsAPI: () => JurisdictionsAPI;
+  onChange: (data: Jurisdiction[]) => void;
 }) {
   const { fetchJurisdictions, fetchSubJurisdictions } = useJurisdictionsAPI();
   const [jurisdictions, setJurisdictions] = useState<{
     [k: string]: Jurisdiction[];
   }>({});
+
+  const [selectedJurisdictions, setSelected] = useState<Jurisdiction[]>([]);
 
   useEffect(() => {
     fetchJurisdictions().then((jurisdictions: Jurisdiction[]) => {
@@ -27,8 +31,11 @@ function App({
     });
   }, [fetchJurisdictions]);
 
-  const loadSubJurisdictions = (jurisdiction: Jurisdiction) => {
+  const selectJurisdiction = (jurisdiction: Jurisdiction) => {
     setJurisdictions({ ...jurisdictions, ...{ [jurisdiction.id]: [] } });
+    const newSelection = [...selectedJurisdictions, jurisdiction];
+    onChange(newSelection);
+    setSelected(newSelection);
     fetchSubJurisdictions(jurisdiction.id).then(
       (subjurisdictions: Jurisdiction[]) => {
         setJurisdictions({
@@ -53,7 +60,7 @@ function App({
         return (
           <div
             onClick={() => {
-              loadSubJurisdictions(jurisdiction);
+              selectJurisdiction(jurisdiction);
             }}
           >
             {jurisdiction.name}
@@ -69,7 +76,7 @@ function App({
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
-                      loadSubJurisdictions(sub);
+                      selectJurisdiction(sub);
                     }}
                   >
                     {sub.name}
