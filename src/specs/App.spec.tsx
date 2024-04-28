@@ -40,7 +40,7 @@ describe("App", () => {
     expect(screen.getByText("Loading ...")).toBeVisible();
   });
 
-  it("should load jurisdictions, display them and remove Loading state", async () => {
+  it("should load jurisdictions, display them and remove loading state", async () => {
     renderApp();
     expect(screen.getByText("Loading ...")).toBeVisible();
     await waitFor(() => {
@@ -50,7 +50,7 @@ describe("App", () => {
     expect(screen.queryByText("Loading ...")).toBeNull();
   });
 
-  describe("when selecting a jurisdiction", () => {
+  describe("when checking a jurisdiction", () => {
     it("should load its subjurisdictions", async () => {
       let dataSelected: number[] = [];
       renderApp((data) => {
@@ -74,7 +74,7 @@ describe("App", () => {
     });
   });
 
-  describe("when selecting a subjurisdiction", () => {
+  describe("when checking a subjurisdiction", () => {
     it("should load its subjurisdictions", async () => {
       let dataSelected: number[] = [];
       renderApp((data) => {
