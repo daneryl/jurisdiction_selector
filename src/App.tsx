@@ -104,36 +104,46 @@ function App({
     });
   }, [fetchJurisdictions]);
 
-  const onJurisdictionSelected = (jurisdiction: Jurisdiction) => {
-    const newSelection = [
-      ...selectedJurisdictions,
-      { name: jurisdiction.name, id: jurisdiction.id },
-    ];
+  const onJurisdictionSelected = (e, jurisdiction: Jurisdiction) => {
+    let newSelection = [];
+    if (!e.target.checked) {
+      newSelection = selectedJurisdictions.filter((j) => j.id !== jurisdiction.id);
+    } else {
+      newSelection = [
+        ...selectedJurisdictions,
+        { name: jurisdiction.name, id: jurisdiction.id },
+      ];
+    }
     onChange(newSelection);
     setSelected(newSelection);
-    setJurisdictions((jurisdictions2) => {
-      const parent = findJurisdictionRecursive(jurisdictions2, jurisdiction.id);
-      if (parent) {
-        parent.subjurisdictions = [];
-      }
-      return [...jurisdictions2];
-    });
-    fetchSubJurisdictions(jurisdiction.id).then(
-      (subjurisdictions: Jurisdiction[]) => {
+    if (!jurisdiction.subjurisdictions) {
+      setJurisdictions((jurisdictions) => {
+        const parent = findJurisdictionRecursive(
+          jurisdictions,
+          jurisdiction.id
+        );
         if (parent) {
-          setJurisdictions((jurisdictions2) => {
-            const parent = findJurisdictionRecursive(
-              jurisdictions2,
-              jurisdiction.id
-            );
-            if (parent) {
-              parent.subjurisdictions = subjurisdictions;
-            }
-            return [...jurisdictions2];
-          });
+          parent.subjurisdictions = [];
         }
-      }
-    );
+        return [...jurisdictions];
+      });
+      fetchSubJurisdictions(jurisdiction.id).then(
+        (subjurisdictions: Jurisdiction[]) => {
+          if (parent) {
+            setJurisdictions((jurisdictions) => {
+              const parent = findJurisdictionRecursive(
+                jurisdictions,
+                jurisdiction.id
+              );
+              if (parent) {
+                parent.subjurisdictions = subjurisdictions;
+              }
+              return [...jurisdictions];
+            });
+          }
+        }
+      );
+    }
   };
 
   if (!Object.keys(jurisdictions).length) {
@@ -151,8 +161,8 @@ function App({
           <li key={jurisdiction.id}>
             <JurisdictionSelector
               jurisdiction={jurisdiction}
-              onChange={(_, jurisdiction) => {
-                onJurisdictionSelected(jurisdiction);
+              onChange={(e, jurisdiction) => {
+                onJurisdictionSelected(e, jurisdiction);
               }}
             />
           </li>

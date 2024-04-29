@@ -23,7 +23,7 @@ const fetchSubJurisdictions = async (id: number): Promise<Jurisdiction[]> => {
   throw new Error("Jurisdiction not found");
 };
 
-const renderApp = (onChange = () => { }) => {
+const renderApp = (onChange: (data: Jurisdiction[]) => void = () => { }) => {
   render(
     <App
       useJurisdictionsAPI={() => {
@@ -52,7 +52,7 @@ describe("App", () => {
 
   describe("when checking a jurisdiction", () => {
     it("should load its subjurisdictions", async () => {
-      let dataSelected: number[] = [];
+      let dataSelected: Jurisdiction[] = [];
       renderApp((data) => {
         dataSelected = data;
       });
@@ -67,11 +67,25 @@ describe("App", () => {
       expect(screen.queryByText("Loading Spain ...")).toBeNull();
       expect(dataSelected).toEqual([{ id: 1, name: "Spain" }]);
     });
+
+    it("should load its subjurisdictions only once", async () => {
+      renderApp();
+      await waitFor(() => expect(screen.getByText("Spain")).toBeVisible());
+      fireEvent.click(screen.getByText("Spain"));
+      expect(screen.getByText("Loading Spain ...")).toBeVisible();
+      expect(screen.queryByText("Loading United Kingdom ...")).toBeNull();
+
+      await waitFor(() => expect(screen.getByText("Aragón")).toBeVisible(), {
+        timeout: 2000,
+      });
+      fireEvent.click(screen.getByText("Spain"));
+      expect(screen.queryByText("Loading Spain ...")).toBeNull();
+    });
   });
 
   describe("when checking a subjurisdiction", () => {
     it("should load its subjurisdictions", async () => {
-      let dataSelected: number[] = [];
+      let dataSelected: Jurisdiction[] = [];
       renderApp((data) => {
         dataSelected = data;
       });
@@ -100,5 +114,32 @@ describe("App", () => {
         { id: 3, name: "Aragón" },
       ]);
     });
+  });
+
+  it("should properly track the values selected", async () => {
+    let dataSelected: Jurisdiction[] = [];
+    renderApp((data) => {
+      dataSelected = data;
+    });
+    await waitFor(() => expect(screen.getByText("Spain")).toBeVisible());
+    fireEvent.click(screen.getByText("Spain"));
+    await waitFor(() => expect(screen.getByText("Aragón")).toBeVisible(), {
+      timeout: 2000,
+    });
+    fireEvent.click(screen.getByText("Aragón"));
+    expect(screen.queryByText("Loading Aragón ...")).toBeVisible();
+    await waitFor(
+      () => expect(screen.queryByText("Loading Aragón ...")).toBeNull(),
+      { timeout: 2000 }
+    );
+    expect(screen.queryByText("Loading Aragón ...")).toBeNull();
+    expect(dataSelected).toEqual([
+      { id: 1, name: "Spain" },
+      { id: 3, name: "Aragón" },
+    ]);
+
+    fireEvent.click(screen.getByText("Spain"));
+
+    expect(dataSelected).toEqual([{ id: 3, name: "Aragón" }]);
   });
 });
