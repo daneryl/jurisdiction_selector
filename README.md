@@ -1,11 +1,16 @@
-# Todos
+# Jurisdiction selector
 
-- [x] cleanup and first commit
-- [x] proof of concept test with a checkbox
-- [x] Improve tests to ensure nested jurisdictions are rendered properly
-- [x] Fake api calls to improve test performance
-- [x] Save state
-- [x] Basic styling
-- [x] Handle loading case without using an empty array
-- [x] Handle api errors
-- [x] Refactor into files/components
+Implemented with Nodejs 20.12.2 vite and typescript, .nvmrc file included in case you use nvm or similar
+
+to run the example on http://localhost:5173:
+
+```bash
+pnpm install
+pnpm run dev
+```
+
+to run ci checks ```pnpm run ci```, this will run eslint, type checking and the testsuite
+to run the testsuite ```pnpm run test```
+
+```pnpm run ci```runs eslint, type checking and the testsuite
+```pnpm run test```runs the testsuite in watch mode for development
