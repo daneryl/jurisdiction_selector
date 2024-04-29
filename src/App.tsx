@@ -4,12 +4,36 @@ import "./App.css";
 export type Jurisdiction = {
   id: number;
   name: string;
+  subjurisdictions?: Jurisdiction[];
 };
 
 type JurisdictionsAPI = {
   fetchJurisdictions: () => Promise<Jurisdiction[]>;
   fetchSubJurisdictions: (id: number) => Promise<Jurisdiction[]>;
 };
+
+function findJurisdictionRecursive(
+  jurisdictions: Jurisdiction[],
+  jurisdictionId: number
+): Jurisdiction | null {
+  for (const jurisdiction of jurisdictions) {
+    if (jurisdiction.id === jurisdictionId) {
+      return jurisdiction;
+    }
+
+    if (jurisdiction.subjurisdictions) {
+      const found = findJurisdictionRecursive(
+        jurisdiction.subjurisdictions,
+        jurisdictionId
+      );
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return null;
+}
 
 function CheckBox({
   label,
@@ -27,6 +51,40 @@ function CheckBox({
   );
 }
 
+function JurisdictionSelector({
+  jurisdiction,
+  onChange,
+}: {
+  jurisdiction: Jurisdiction;
+  onChange: (e: React.ChangeEvent, jurisdiction: Jurisdiction) => void;
+}) {
+  return (
+    <>
+      <CheckBox
+        label={jurisdiction.name}
+        onChange={(e) => {
+          onChange(e, jurisdiction);
+        }}
+      />
+      {jurisdiction.subjurisdictions &&
+        !jurisdiction.subjurisdictions.length && (
+          <div>Loading {jurisdiction.name} ...</div>
+        )}
+      <ul>
+        {jurisdiction.subjurisdictions &&
+          jurisdiction.subjurisdictions.map((subjurisdiction) => (
+            <li key={subjurisdiction.id}>
+              <JurisdictionSelector
+                jurisdiction={subjurisdiction}
+                onChange={onChange}
+              />
+            </li>
+          ))}
+      </ul>
+    </>
+  );
+}
+
 function App({
   useJurisdictionsAPI,
   onChange,
@@ -35,29 +93,45 @@ function App({
   onChange: (data: Jurisdiction[]) => void;
 }) {
   const { fetchJurisdictions, fetchSubJurisdictions } = useJurisdictionsAPI();
-  const [jurisdictions, setJurisdictions] = useState<{
-    [k: string]: Jurisdiction[];
-  }>({});
+
+  const [jurisdictions, setJurisdictions] = useState<Jurisdiction[]>([]);
 
   const [selectedJurisdictions, setSelected] = useState<Jurisdiction[]>([]);
 
   useEffect(() => {
     fetchJurisdictions().then((jurisdictions: Jurisdiction[]) => {
-      setJurisdictions({ 0: jurisdictions });
+      setJurisdictions(jurisdictions);
     });
   }, [fetchJurisdictions]);
 
   const onJurisdictionSelected = (jurisdiction: Jurisdiction) => {
-    const newSelection = [...selectedJurisdictions, jurisdiction];
+    const newSelection = [
+      ...selectedJurisdictions,
+      { name: jurisdiction.name, id: jurisdiction.id },
+    ];
     onChange(newSelection);
     setSelected(newSelection);
-    setJurisdictions({ ...jurisdictions, ...{ [jurisdiction.id]: [] } });
+    setJurisdictions((jurisdictions2) => {
+      const parent = findJurisdictionRecursive(jurisdictions2, jurisdiction.id);
+      if (parent) {
+        parent.subjurisdictions = [];
+      }
+      return [...jurisdictions2];
+    });
     fetchSubJurisdictions(jurisdiction.id).then(
       (subjurisdictions: Jurisdiction[]) => {
-        setJurisdictions({
-          ...jurisdictions,
-          ...{ [jurisdiction.id]: subjurisdictions },
-        });
+        if (parent) {
+          setJurisdictions((jurisdictions2) => {
+            const parent = findJurisdictionRecursive(
+              jurisdictions2,
+              jurisdiction.id
+            );
+            if (parent) {
+              parent.subjurisdictions = subjurisdictions;
+            }
+            return [...jurisdictions2];
+          });
+        }
       }
     );
   };
@@ -71,57 +145,20 @@ function App({
   }
 
   return (
-    <>
-      {jurisdictions[0].map((jurisdiction) => {
+    <ul>
+      {jurisdictions.map((jurisdiction) => {
         return (
-          <div>
-            <CheckBox
-              label={jurisdiction.name}
-              onChange={() => {
+          <li key={jurisdiction.id}>
+            <JurisdictionSelector
+              jurisdiction={jurisdiction}
+              onChange={(_, jurisdiction) => {
                 onJurisdictionSelected(jurisdiction);
               }}
             />
-            {jurisdictions[jurisdiction.id] &&
-              !jurisdictions[jurisdiction.id].length && (
-                <div>Loading {jurisdiction.name} ...</div>
-              )}
-
-            {jurisdictions[jurisdiction.id] &&
-              jurisdictions[jurisdiction.id].length &&
-              jurisdictions[jurisdiction.id].map((sub) => {
-                return (
-                  <div>
-                    <CheckBox
-                      label={sub.name}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        onJurisdictionSelected(sub);
-                      }}
-                    />
-                    {jurisdictions[sub.id] && !jurisdictions[sub.id].length && (
-                      <div>Loading {sub.name} ...</div>
-                    )}
-
-                    {jurisdictions[sub.id] &&
-                      jurisdictions[sub.id].length &&
-                      jurisdictions[sub.id].map((sub2) => {
-                        return (
-                          <CheckBox
-                            label={sub2.name}
-                            // onChange={(e) => {
-                            //   e.stopPropagation();
-                            //   onJurisdictionSelected(sub);
-                            // }}
-                          />
-                        );
-                      })}
-                  </div>
-                );
-              })}
-          </div>
+          </li>
         );
       })}
-    </>
+    </ul>
   );
 }
 

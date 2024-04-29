@@ -56,19 +56,14 @@ describe("App", () => {
       renderApp((data) => {
         dataSelected = data;
       });
-      await waitFor(() => {
-        expect(screen.getByText("Spain")).toBeVisible();
-      });
+      await waitFor(() => expect(screen.getByText("Spain")).toBeVisible());
       fireEvent.click(screen.getByText("Spain"));
       expect(screen.getByText("Loading Spain ...")).toBeVisible();
       expect(screen.queryByText("Loading United Kingdom ...")).toBeNull();
 
-      await waitFor(
-        () => {
-          expect(screen.getByText("Aragón")).toBeVisible();
-        },
-        { timeout: 2000 }
-      );
+      await waitFor(() => expect(screen.getByText("Aragón")).toBeVisible(), {
+        timeout: 2000,
+      });
       expect(screen.queryByText("Loading Spain ...")).toBeNull();
       expect(dataSelected).toEqual([{ id: 1, name: "Spain" }]);
     });
