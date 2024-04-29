@@ -6,6 +6,6 @@
 - [x] Fake api calls to improve test performance
 - [x] Save state
 - [x] Basic styling
-- [ ] Handle loading case without using an empty array
+- [x] Handle loading case without using an empty array
 - [ ] Handle api errors
 - [ ] Refactor into files/components
