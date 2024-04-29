@@ -66,7 +66,7 @@ function App({
     setSelected(newSelection);
   }
 
-  const onJurisdictionSelected = (
+  const onJurisdictionChanged = (
     e: React.ChangeEvent<HTMLInputElement>,
     jurisdiction: Jurisdiction
   ) => {
@@ -114,7 +114,7 @@ function App({
               <JurisdictionSelector
                 jurisdiction={jurisdiction}
                 onChange={(e, jurisdiction) => {
-                  onJurisdictionSelected(e, jurisdiction);
+                  onJurisdictionChanged(e, jurisdiction);
                 }}
               />
             </li>
