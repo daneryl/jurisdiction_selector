@@ -1,17 +1,6 @@
-import { useEffect, useId, useState } from "react";
-import "./App.css";
-
-export type Jurisdiction = {
-  id: number;
-  name: string;
-  loading: boolean;
-  subjurisdictions?: Jurisdiction[];
-};
-
-export type SelectedJurisdiction = {
-  id: number;
-  name: string;
-};
+import { useEffect, useState } from "react";
+import { JurisdictionSelector } from "./JurisdictionSelector";
+import { Jurisdiction, SelectedJurisdiction } from "./types";
 
 type JurisdictionsAPI = {
   fetchJurisdictions: () => Promise<{ id: number; name: string }[]>;
@@ -41,59 +30,6 @@ function findJurisdictionRecursive(
   }
 
   return null;
-}
-
-function CheckBox({
-  label,
-  onChange,
-}: {
-  label: string;
-  onChange: React.ChangeEventHandler<HTMLInputElement>;
-}) {
-  const uniqueId = useId();
-  return (
-    <>
-      <input type="checkbox" id={uniqueId} onChange={onChange} />
-      <label htmlFor={uniqueId}>{label}</label>
-    </>
-  );
-}
-
-function JurisdictionSelector({
-  jurisdiction,
-  onChange,
-}: {
-  jurisdiction: Jurisdiction;
-  onChange: (
-    e: React.ChangeEvent<HTMLInputElement>,
-    jurisdiction: Jurisdiction
-  ) => void;
-}) {
-  let label = jurisdiction.name;
-  if (jurisdiction.loading) {
-    label = `${jurisdiction.name}...`;
-  }
-  return (
-    <>
-      <CheckBox
-        label={label}
-        onChange={(e) => {
-          onChange(e, jurisdiction);
-        }}
-      />
-      <ul>
-        {jurisdiction.subjurisdictions &&
-          jurisdiction.subjurisdictions.map((subjurisdiction) => (
-            <li key={subjurisdiction.id}>
-              <JurisdictionSelector
-                jurisdiction={subjurisdiction}
-                onChange={onChange}
-              />
-            </li>
-          ))}
-      </ul>
-    </>
-  );
 }
 
 function App({
