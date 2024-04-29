@@ -7,5 +7,5 @@
 - [x] Save state
 - [x] Basic styling
 - [x] Handle loading case without using an empty array
-- [ ] Handle api errors
+- [x] Handle api errors
 - [ ] Refactor into files/components
