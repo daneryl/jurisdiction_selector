@@ -2,7 +2,8 @@ export type Jurisdiction = {
   id: number;
   name: string;
   loading: boolean;
-  subjurisdictions?: Jurisdiction[];
+  loaded: boolean;
+  subjurisdictions: Jurisdiction[];
 };
 
 export type SelectedJurisdiction = {

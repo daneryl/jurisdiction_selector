@@ -8,4 +8,4 @@
 - [x] Basic styling
 - [x] Handle loading case without using an empty array
 - [x] Handle api errors
-- [ ] Refactor into files/components
+- [x] Refactor into files/components

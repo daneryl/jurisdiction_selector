@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import App from "../App";
 import { SelectedJurisdiction } from "../types";
+import App from "../App";
 
 const fetchJurisdictions = async (): Promise<{id: number, name: string}[]> => {
   await new Promise((resolve) => setTimeout(resolve, 1));

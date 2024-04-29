@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { JurisdictionSelector } from "./JurisdictionSelector";
 import { Jurisdiction, SelectedJurisdiction } from "./types";
+import { jurisdictionsReducer } from "./jurisdictionsReducer";
 
 type JurisdictionsAPI = {
   fetchJurisdictions: () => Promise<{ id: number; name: string }[]>;
@@ -8,29 +9,6 @@ type JurisdictionsAPI = {
     id: number
   ) => Promise<{ id: number; name: string }[]>;
 };
-
-function findJurisdictionRecursive(
-  jurisdictions: Jurisdiction[],
-  jurisdictionId: number
-): Jurisdiction | null {
-  for (const jurisdiction of jurisdictions) {
-    if (jurisdiction.id === jurisdictionId) {
-      return jurisdiction;
-    }
-
-    if (jurisdiction.subjurisdictions) {
-      const found = findJurisdictionRecursive(
-        jurisdiction.subjurisdictions,
-        jurisdictionId
-      );
-      if (found) {
-        return found;
-      }
-    }
-  }
-
-  return null;
-}
 
 function App({
   useJurisdictionsAPI,
@@ -40,74 +18,86 @@ function App({
   onChange: (data: SelectedJurisdiction[]) => void;
 }) {
   const { fetchJurisdictions, fetchSubJurisdictions } = useJurisdictionsAPI();
-
-  const [jurisdictions, setJurisdictions] = useState<Jurisdiction[]>([]);
-
-  const [selectedJurisdictions, setSelected] = useState<SelectedJurisdiction[]>(
-    []
-  );
+  const [state, dispatch] = useReducer(jurisdictionsReducer, {
+    id: 0,
+    name: "ROOT",
+    loading: false,
+    loaded: false,
+    subjurisdictions: [],
+  });
+  const [selected, setSelected] = useState<SelectedJurisdiction[]>([]);
 
   useEffect(() => {
     fetchJurisdictions().then(
       (jurisdictions: { id: number; name: string }[]) => {
-        setJurisdictions(
-          jurisdictions.map((j) => Object.assign(j, { loading: false }))
-        );
+        dispatch({
+          type: "update",
+          jurisdiction: {
+            id: 0,
+            name: "ROOT",
+            loading: false,
+            loaded: true,
+            subjurisdictions: jurisdictions.map((j) => ({
+              ...j,
+              loading: false,
+              loaded: false,
+              subjurisdictions: [],
+            })),
+          },
+        });
       }
     );
   }, [fetchJurisdictions]);
 
-  const onJurisdictionSelected = (
+  function changeSelected(
     e: React.ChangeEvent<HTMLInputElement>,
     jurisdiction: Jurisdiction
-  ) => {
+  ) {
     let newSelection: SelectedJurisdiction[] = [];
     if (!e.target.checked) {
-      newSelection = selectedJurisdictions.filter(
-        (j) => j.id !== jurisdiction.id
-      );
+      newSelection = selected.filter((j) => j.id !== jurisdiction.id);
     } else {
       newSelection = [
-        ...selectedJurisdictions,
+        ...selected,
         { name: jurisdiction.name, id: jurisdiction.id },
       ];
     }
     onChange(newSelection);
     setSelected(newSelection);
-    if (!jurisdiction.subjurisdictions) {
-      setJurisdictions((jurisdictions) => {
-        const parent = findJurisdictionRecursive(
-          jurisdictions,
-          jurisdiction.id
-        );
-        if (parent) {
-          parent.loading = true;
-        }
-        return [...jurisdictions];
+  }
+
+  const onJurisdictionSelected = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    jurisdiction: Jurisdiction
+  ) => {
+    changeSelected(e, jurisdiction);
+    if (!jurisdiction.loaded) {
+      dispatch({
+        type: "update",
+        jurisdiction: { ...jurisdiction, loading: true },
       });
       fetchSubJurisdictions(jurisdiction.id).then(
         (subjurisdictions: { id: number; name: string }[]) => {
-          if (parent) {
-            setJurisdictions((jurisdictions) => {
-              const parent = findJurisdictionRecursive(
-                jurisdictions,
-                jurisdiction.id
-              );
-              if (parent) {
-                parent.loading = false;
-                parent.subjurisdictions = subjurisdictions.map((j) =>
-                  Object.assign(j, { loading: false })
-                );
-              }
-              return [...jurisdictions];
-            });
-          }
+          dispatch({
+            type: "update",
+            jurisdiction: {
+              ...jurisdiction,
+              subjurisdictions: subjurisdictions.map((j) => ({
+                ...j,
+                loaded: false,
+                loading: false,
+                subjurisdictions: []
+              })),
+              loaded: true,
+              loading: false,
+            },
+          });
         }
       );
     }
   };
 
-  if (!Object.keys(jurisdictions).length) {
+  if (!state.loaded) {
     return (
       <>
         <div>Loading ...</div>
@@ -118,7 +108,7 @@ function App({
   return (
     <>
       <ul>
-        {jurisdictions.map((jurisdiction) => {
+        {state.subjurisdictions.map((jurisdiction) => {
           return (
             <li key={jurisdiction.id}>
               <JurisdictionSelector
@@ -134,9 +124,7 @@ function App({
       <div className="debug-selected">
         <pre>
           {"[\n" +
-            selectedJurisdictions
-              .map((j) => "  " + JSON.stringify(j))
-              .join(",\n") +
+            selected.map((j) => "  " + JSON.stringify(j)).join(",\n") +
             "\n]"}
         </pre>
       </div>
