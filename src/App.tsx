@@ -56,7 +56,10 @@ function JurisdictionSelector({
   onChange,
 }: {
   jurisdiction: Jurisdiction;
-  onChange: (e: React.ChangeEvent, jurisdiction: Jurisdiction) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement>,
+    jurisdiction: Jurisdiction
+  ) => void;
 }) {
   return (
     <>
@@ -104,10 +107,15 @@ function App({
     });
   }, [fetchJurisdictions]);
 
-  const onJurisdictionSelected = (e, jurisdiction: Jurisdiction) => {
+  const onJurisdictionSelected = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    jurisdiction: Jurisdiction
+  ) => {
     let newSelection = [];
     if (!e.target.checked) {
-      newSelection = selectedJurisdictions.filter((j) => j.id !== jurisdiction.id);
+      newSelection = selectedJurisdictions.filter(
+        (j) => j.id !== jurisdiction.id
+      );
     } else {
       newSelection = [
         ...selectedJurisdictions,
@@ -155,20 +163,25 @@ function App({
   }
 
   return (
-    <ul>
-      {jurisdictions.map((jurisdiction) => {
-        return (
-          <li key={jurisdiction.id}>
-            <JurisdictionSelector
-              jurisdiction={jurisdiction}
-              onChange={(e, jurisdiction) => {
-                onJurisdictionSelected(e, jurisdiction);
-              }}
-            />
-          </li>
-        );
-      })}
-    </ul>
+    <>
+      <ul>
+        {jurisdictions.map((jurisdiction) => {
+          return (
+            <li key={jurisdiction.id}>
+              <JurisdictionSelector
+                jurisdiction={jurisdiction}
+                onChange={(e, jurisdiction) => {
+                  onJurisdictionSelected(e, jurisdiction);
+                }}
+              />
+            </li>
+          );
+        })}
+      </ul>
+      <div className="debug-selected">
+        <pre>{"[\n" + selectedJurisdictions.map(j => '  ' + JSON.stringify(j)).join(',\n') + "\n]"}</pre>
+      </div>
+    </>
   );
 }
 
